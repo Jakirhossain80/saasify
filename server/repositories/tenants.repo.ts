@@ -1,48 +1,49 @@
-// server/repositories/tenants.repo.ts
-
+// FILE: server/repositories/tenants.repo.ts
 import { connectToDatabase } from "@/server/db";
 import { Tenant, type TenantDoc } from "@/server/models/Tenant";
-import type mongoose from "mongoose";
 
-export type CreateTenantInput = {
-  name: string;
-  slug: string;
-  createdByUserId: mongoose.Types.ObjectId;
+export type ListTenantsRepoOptions = {
+  limit?: number;
+  offset?: number;
+  search?: string;
 };
 
-export async function createTenant(input: CreateTenantInput): Promise<TenantDoc> {
+export async function listTenants(
+  options: ListTenantsRepoOptions = {}
+): Promise<{ items: TenantDoc[]; total: number; active: number; suspended: number; limit: number; offset: number }> {
   await connectToDatabase();
-  const doc = await Tenant.create({
-    name: input.name,
-    slug: input.slug,
-    createdByUserId: input.createdByUserId,
-  });
-  return doc;
-}
 
-export async function findTenantById(
-  tenantId: mongoose.Types.ObjectId
-): Promise<TenantDoc | null> {
-  await connectToDatabase();
-  return Tenant.findById(tenantId).exec();
-}
+  const limit = Math.min(Math.max(options.limit ?? 12, 1), 100);
+  const offset = Math.max(options.offset ?? 0, 0);
 
-export async function findTenantBySlug(slug: string): Promise<TenantDoc | null> {
-  await connectToDatabase();
-  return Tenant.findOne({ slug }).exec();
-}
+  const query: Record<string, unknown> = {};
 
-export async function listTenantsByCreator(
-  createdByUserId: mongoose.Types.ObjectId
-): Promise<TenantDoc[]> {
-  await connectToDatabase();
-  return Tenant.find({ createdByUserId }).sort({ createdAt: -1 }).exec();
+  const search = options.search?.trim();
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { slug: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  const [items, total, active, suspended] = await Promise.all([
+    Tenant.find(query).sort({ createdAt: -1 }).skip(offset).limit(limit).exec(),
+    Tenant.countDocuments(query).exec(),
+    Tenant.countDocuments({ ...query, status: "active" }).exec(),
+    Tenant.countDocuments({ ...query, status: "suspended" }).exec(),
+  ]);
+
+  return { items, total, active, suspended, limit, offset };
 }
 
 export async function updateTenantStatus(
-  tenantId: mongoose.Types.ObjectId,
+  tenantId: string,
   status: "active" | "suspended"
 ): Promise<TenantDoc | null> {
   await connectToDatabase();
-  return Tenant.findByIdAndUpdate(tenantId, { $set: { status } }, { new: true }).exec();
+  return Tenant.findByIdAndUpdate(
+    tenantId,
+    { $set: { status } },
+    { new: true }
+  ).exec();
 }

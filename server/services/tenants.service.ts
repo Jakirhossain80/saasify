@@ -1,38 +1,24 @@
-// server/services/tenants.service.ts
-
-import type mongoose from "mongoose";
+// FILE: server/services/tenants.service.ts
 import type { TenantDoc } from "@/server/models/Tenant";
-import {
-  createTenant,
-  findTenantById,
-  findTenantBySlug,
-  listTenantsByCreator,
-  updateTenantStatus,
-  type CreateTenantInput,
-} from "@/server/repositories/tenants.repo";
+import { listTenants, updateTenantStatus } from "@/server/repositories/tenants.repo";
 
-export async function createTenantWorkspace(input: CreateTenantInput): Promise<TenantDoc> {
-  return createTenant(input);
-}
-
-export async function getTenantById(
-  tenantId: mongoose.Types.ObjectId
-): Promise<TenantDoc | null> {
-  return findTenantById(tenantId);
-}
-
-export async function getTenantBySlug(slug: string): Promise<TenantDoc | null> {
-  return findTenantBySlug(slug);
-}
-
-export async function getTenantsCreatedByUser(
-  createdByUserId: mongoose.Types.ObjectId
-): Promise<TenantDoc[]> {
-  return listTenantsByCreator(createdByUserId);
+export async function listTenantsForPlatform(opts?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}): Promise<{
+  items: TenantDoc[];
+  total: number;
+  active: number;
+  suspended: number;
+  limit: number;
+  offset: number;
+}> {
+  return listTenants(opts);
 }
 
 export async function setTenantStatus(
-  tenantId: mongoose.Types.ObjectId,
+  tenantId: string,
   status: "active" | "suspended"
 ): Promise<TenantDoc | null> {
   return updateTenantStatus(tenantId, status);
