@@ -1,5 +1,4 @@
-// server/services/memberships.service.ts
-
+// FILE: server/services/memberships.service.ts
 import type mongoose from "mongoose";
 import type { MembershipDoc, TenantRole } from "@/server/models/Membership";
 import {
@@ -12,7 +11,9 @@ import {
   type CreateMembershipInput,
 } from "@/server/repositories/memberships.repo";
 
-export async function addMemberToTenant(input: CreateMembershipInput): Promise<MembershipDoc> {
+export async function addMemberToTenant(
+  input: CreateMembershipInput
+): Promise<MembershipDoc> {
   return createMembership(input);
 }
 

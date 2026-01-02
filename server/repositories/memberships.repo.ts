@@ -1,14 +1,18 @@
-// server/repositories/memberships.repo.ts
-
+// FILE: server/repositories/memberships.repo.ts
 import { connectToDatabase } from "@/server/db";
-import { Membership, type MembershipDoc, type TenantRole } from "@/server/models/Membership";
+import {
+  Membership,
+  type MembershipDoc,
+  type TenantRole,
+  type MembershipStatus,
+} from "@/server/models/Membership";
 import type mongoose from "mongoose";
 
 export type CreateMembershipInput = {
   tenantId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   role: TenantRole;
-  status?: "active" | "invited" | "removed";
+  status?: MembershipStatus;
 };
 
 export async function createMembership(
@@ -29,14 +33,21 @@ export async function findMembership(
   userId: mongoose.Types.ObjectId
 ): Promise<MembershipDoc | null> {
   await connectToDatabase();
-  return Membership.findOne({ tenantId, userId, status: { $ne: "removed" } }).exec();
+  return Membership.findOne({
+    tenantId,
+    userId,
+    status: { $ne: "removed" },
+  }).exec();
 }
 
 export async function listMembershipsForTenant(
   tenantId: mongoose.Types.ObjectId
 ): Promise<MembershipDoc[]> {
   await connectToDatabase();
-  return Membership.find({ tenantId, status: { $ne: "removed" } })
+  return Membership.find({
+    tenantId,
+    status: { $ne: "removed" },
+  })
     .sort({ createdAt: -1 })
     .exec();
 }
@@ -45,7 +56,10 @@ export async function listMembershipsForUser(
   userId: mongoose.Types.ObjectId
 ): Promise<MembershipDoc[]> {
   await connectToDatabase();
-  return Membership.find({ userId, status: { $ne: "removed" } })
+  return Membership.find({
+    userId,
+    status: { $ne: "removed" },
+  })
     .sort({ createdAt: -1 })
     .exec();
 }
