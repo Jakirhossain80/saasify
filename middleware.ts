@@ -1,16 +1,16 @@
+// FILE: middleware.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPlatformRoute = createRouteMatcher(["/platform(.*)"]);
-const isTenantRoute = createRouteMatcher(["/tenant(.*)"]);
+const isProtectedRoute = createRouteMatcher(["/platform(.*)", "/tenant(.*)"]);
 
 export default clerkMiddleware((auth, req) => {
-  // Require user to be signed in for these sections
-  if (isPlatformRoute(req) || isTenantRoute(req)) {
-    auth().protect();
-  }
+  if (isProtectedRoute(req)) auth().protect();
 });
 
 export const config = {
-  matcher: ["/((?!_next|.*\\..*).*)"],
+  matcher: [
+    // Run middleware on all app routes except Next internals and static files
+    "/((?!_next|.*\\.(?:css|js|json|png|jpg|jpeg|gif|svg|webp|ico|txt|xml|map)$).*)",
+    "/(api|trpc)(.*)",
+  ],
 };
-
