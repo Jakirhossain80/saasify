@@ -1,18 +1,42 @@
-// server/services/projects.service.ts
-
+// FILE: server/services/projects.service.ts
 import type mongoose from "mongoose";
 import type { ProjectDoc, ProjectStatus } from "@/server/models/Project";
 import {
-  createProject,
+  archiveProjectScoped,
+  createProjectScoped,
   findProjectByIdScoped,
   listProjectsScoped,
+  restoreArchivedProjectScoped,
+  restoreSoftDeletedProjectScoped,
   softDeleteProjectScoped,
   updateProjectScoped,
-  type CreateProjectInput,
 } from "@/server/repositories/projects.repo";
 
-export async function createTenantProject(input: CreateProjectInput): Promise<ProjectDoc> {
-  return createProject(input);
+export type CreateProjectServiceInput = {
+  tenantId: mongoose.Types.ObjectId;
+  title: string;
+  description?: string;
+  actorUserId: mongoose.Types.ObjectId;
+};
+
+export type UpdateProjectServiceInput = {
+  tenantId: mongoose.Types.ObjectId;
+  projectId: mongoose.Types.ObjectId;
+  title?: string;
+  description?: string;
+  status?: ProjectStatus;
+  actorUserId: mongoose.Types.ObjectId;
+};
+
+export async function createTenantProject(
+  input: CreateProjectServiceInput
+): Promise<ProjectDoc> {
+  return createProjectScoped({
+    tenantId: input.tenantId,
+    title: input.title,
+    description: input.description,
+    createdByUserId: input.actorUserId,
+  });
 }
 
 export async function getProjectScoped(
@@ -30,14 +54,7 @@ export async function listTenantProjects(
 }
 
 export async function updateTenantProject(
-  input: {
-    tenantId: mongoose.Types.ObjectId;
-    projectId: mongoose.Types.ObjectId;
-    title?: string;
-    description?: string;
-    status?: ProjectStatus;
-    updatedByUserId: mongoose.Types.ObjectId;
-  }
+  input: UpdateProjectServiceInput
 ): Promise<ProjectDoc | null> {
   return updateProjectScoped({
     tenantId: input.tenantId,
@@ -45,14 +62,38 @@ export async function updateTenantProject(
     title: input.title,
     description: input.description,
     status: input.status,
-    updatedByUserId: input.updatedByUserId,
+    updatedByUserId: input.actorUserId,
   });
 }
 
-export async function deleteTenantProject(
+export async function archiveTenantProject(
   tenantId: mongoose.Types.ObjectId,
   projectId: mongoose.Types.ObjectId,
-  updatedByUserId: mongoose.Types.ObjectId
+  actorUserId: mongoose.Types.ObjectId
 ): Promise<ProjectDoc | null> {
-  return softDeleteProjectScoped(tenantId, projectId, updatedByUserId);
+  return archiveProjectScoped(tenantId, projectId, actorUserId);
+}
+
+export async function restoreArchivedTenantProject(
+  tenantId: mongoose.Types.ObjectId,
+  projectId: mongoose.Types.ObjectId,
+  actorUserId: mongoose.Types.ObjectId
+): Promise<ProjectDoc | null> {
+  return restoreArchivedProjectScoped(tenantId, projectId, actorUserId);
+}
+
+export async function softDeleteTenantProject(
+  tenantId: mongoose.Types.ObjectId,
+  projectId: mongoose.Types.ObjectId,
+  actorUserId: mongoose.Types.ObjectId
+): Promise<ProjectDoc | null> {
+  return softDeleteProjectScoped(tenantId, projectId, actorUserId);
+}
+
+export async function restoreSoftDeletedTenantProject(
+  tenantId: mongoose.Types.ObjectId,
+  projectId: mongoose.Types.ObjectId,
+  actorUserId: mongoose.Types.ObjectId
+): Promise<ProjectDoc | null> {
+  return restoreSoftDeletedProjectScoped(tenantId, projectId, actorUserId);
 }
