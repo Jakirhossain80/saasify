@@ -1,13 +1,20 @@
 // FILE: server/guards/requirePlatformAdmin.ts
-import { requireAuth } from "@/server/guards/requireAuth";
-import type { CurrentAuthUser } from "@/server/auth/currentUser";
+import { redirect } from "next/navigation";
+import { getCurrentAuthUserOrThrow } from "@/server/auth/currentUser";
 
-export async function requirePlatformAdmin(): Promise<CurrentAuthUser> {
-  const user = await requireAuth();
+export async function requirePlatformAdmin() {
+  try {
+    const user = await getCurrentAuthUserOrThrow();
 
-  if (user.dbUser.platformRole !== "platform_admin") {
-    throw new Error("FORBIDDEN_PLATFORM_ADMIN_ONLY");
+    // TODO: replace this with your real admin check
+    const isAdmin = user.dbUser?.role === "platform_admin";
+
+    if (!isAdmin) {
+      redirect("/");
+    }
+
+    return user;
+  } catch (e) {
+    redirect("/sign-in");
   }
-
-  return user;
 }

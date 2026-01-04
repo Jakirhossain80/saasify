@@ -29,7 +29,7 @@ export default async function PlatformDashboardPage() {
             <Link href="/platform">Platform Home</Link>
           </Button>
           <Button asChild variant="secondary" className="rounded-full">
-            <Link href="/tenant">Tenant Workspace</Link>
+            <Link href="/t/select-tenant">Tenant Workspace</Link>
           </Button>
         </div>
       </div>

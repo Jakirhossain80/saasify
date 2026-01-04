@@ -1,32 +1,24 @@
-// FILE: middleware.ts
+// FILE: proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(["/platform(.*)", "/tenant(.*)"]);
-const isTenantRoute = createRouteMatcher(["/tenant(.*)"]);
-const isTenantSelectionRoute = createRouteMatcher(["/tenant/select-tenant(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  // Protect platform + tenant areas (adjust as you need)
+  "/dashboard(.*)",
+  "/tenants(.*)",
+  "/t/(.*)", // if your tenant routes are under /t/[tenantSlug]/...
+]);
 
-const TENANT_COOKIE = "saasify_tenant";
-
-export default clerkMiddleware((auth, req) => {
-  if (isProtectedRoute(req)) auth().protect();
-
-  // MVP tenant context source: cookie-based selected tenant
-  if (isTenantRoute(req) && !isTenantSelectionRoute(req)) {
-    const tenantId = req.cookies.get(TENANT_COOKIE)?.value?.trim();
-    if (!tenantId) {
-      const url = new URL("/tenant/select-tenant", req.url);
-      url.searchParams.set("next", req.nextUrl.pathname + req.nextUrl.search);
-      return NextResponse.redirect(url);
-    }
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    await auth.protect(); // ✅ correct for Clerk middleware
   }
-
-  return NextResponse.next();
 });
 
 export const config = {
   matcher: [
-    "/((?!_next|.*\\.(?:css|js|json|png|jpg|jpeg|gif|svg|webp|ico|txt|xml|map)$).*)",
+    // Match all routes except Next internals and static files
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };

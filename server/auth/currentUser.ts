@@ -1,7 +1,10 @@
 // FILE: server/auth/currentUser.ts
 import { auth, currentUser } from "@clerk/nextjs/server";
 import type mongoose from "mongoose";
-import { ensureUserFromClerk, getUserByClerkId } from "@/server/services/users.service";
+import {
+  ensureUserFromClerk,
+  getUserByClerkId,
+} from "@/server/services/users.service";
 import type { UserDoc } from "@/server/models/User";
 
 export type CurrentAuthUser = {
@@ -52,6 +55,7 @@ export async function getCurrentAuthUserOrNull(): Promise<CurrentAuthUser | null
 export async function getCurrentAuthUserOrThrow(): Promise<CurrentAuthUser> {
   const user = await getCurrentAuthUserOrNull();
   if (!user) {
+    // ✅ Keep auth utility pure: throw and let guards/pages decide redirects
     throw new Error("UNAUTHENTICATED");
   }
   return user;

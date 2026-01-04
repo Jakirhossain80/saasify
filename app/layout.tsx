@@ -1,3 +1,4 @@
+// FILE: app/layout.tsx
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -18,7 +19,7 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: {
     default: "SaaSify",
     template: "%s • SaaSify",
@@ -26,16 +27,16 @@ export const metadata = {
   description: "Multi-tenant SaaS dashboard for project management",
 };
 
-
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className={`${poppins.variable} ${inter.variable} antialiased`}>
-        <ClerkProvider>
+        <ClerkProvider
+          fallbackRedirectUrl="/t/select-tenant"
+          fallbackRedirectUrlAfterSignUp="/t/select-tenant"
+        >
           <QueryProvider>{children}</QueryProvider>
         </ClerkProvider>
       </body>
