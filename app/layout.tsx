@@ -34,8 +34,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${poppins.variable} ${inter.variable} antialiased`}>
         <ClerkProvider
-          fallbackRedirectUrl="/t/select-tenant"
-          fallbackRedirectUrlAfterSignUp="/t/select-tenant"
+          signInFallbackRedirectUrl="/t/select-tenant"
+          signUpFallbackRedirectUrl="/t/select-tenant"
         >
           <QueryProvider>{children}</QueryProvider>
         </ClerkProvider>
